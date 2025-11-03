@@ -12,13 +12,20 @@ import io.lettuce.core.codec.ByteArrayCodec;
 import io.lettuce.core.codec.RedisCodec;
 import io.lettuce.core.codec.StringCodec;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.RedisTemplate;
 
 import java.time.Duration;
 import java.util.function.Supplier;
 
+/**
+ * Redis Configuration - SIMPLIFIED
+ */
 @Configuration
+@EnableCaching
 public class RedisConfig {
 
     @Value("${spring.data.redis.host:localhost}")
@@ -30,9 +37,8 @@ public class RedisConfig {
     @Value("${app.rate-limiting.requests-per-minute:200}")
     private long requestsPerMinute;
 
-    /**
-     * Redis client connection
-     */
+    // ============ BUCKET4J CONFIGURATION ============
+
     private RedisClient redisClient() {
         return RedisClient.create(RedisURI.builder()
                 .withHost(redisHost)
@@ -41,10 +47,6 @@ public class RedisConfig {
                 .build());
     }
 
-    /**
-     * Lettuce-based Proxy Manager for distributed buckets
-     * (Exactly as blog post)
-     */
     @Bean
     public ProxyManager<String> lettuceBasedProxyManager() {
         RedisClient redisClient = redisClient();
@@ -58,14 +60,24 @@ public class RedisConfig {
                 .build();
     }
 
-    /**
-     * Bucket configuration supplier
-     * (Exactly as blog post)
-     */
     @Bean
     public Supplier<BucketConfiguration> bucketConfiguration() {
         return () -> BucketConfiguration.builder()
                 .addLimit(Bandwidth.simple(requestsPerMinute, Duration.ofMinutes(1L)))
                 .build();
+    }
+
+    // ============ REDISTEMPLATE - SIMPLIFIED ============
+
+    /**
+     * RedisTemplate bean for login attempt tracking
+     * SIMPLIFIED VERSION - No Jackson dependency needed
+     */
+    @Bean
+    public RedisTemplate<String, String> redisTemplate(RedisConnectionFactory connectionFactory) {
+        RedisTemplate<String, String> template = new RedisTemplate<>();
+        template.setConnectionFactory(connectionFactory);
+        template.afterPropertiesSet();
+        return template;
     }
 }

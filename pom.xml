@@ -113,6 +113,13 @@
             <scope>runtime</scope>
         </dependency>
 
+        <!-- JSON Serialization for Redis -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+
+
         <!-- OpenAPI/Swagger -->
         <dependency>
             <groupId>org.springdoc</groupId>
